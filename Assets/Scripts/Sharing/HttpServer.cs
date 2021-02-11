@@ -33,6 +33,7 @@ public class HttpServer : MonoBehaviour {
       new Dictionary<string, Action<HttpListenerContext>>();
 
   void Awake() {
+    Debug.Log("Starting HttpServer");
     try {
       m_HttpListener = new HttpListener();
       m_HttpListener.Prefixes.Add(String.Format("http://+:{0}/", m_httpListenerPort));
@@ -48,7 +49,7 @@ public class HttpServer : MonoBehaviour {
               break;
             }
             try {
-              if (!ctx.Request.IsLocal) {
+              if (!IsValidRequester(ctx.Request)) {
                 // Return 403: Forbidden if the originator was non-local.
                 ctx.Response.StatusCode = (int) HttpStatusCode.Forbidden;
               } else {
@@ -86,11 +87,18 @@ public class HttpServer : MonoBehaviour {
     }
   }
 
+  private bool IsValidRequester(HttpListenerRequest req)
+  {
+    bool validIp = true; // TODO - User can restrict to their machine.
+    return req.IsLocal || validIp;
+  }
+
   /// Adds a handler to the Http server that responds to a given path.
   /// Path should include / at the start - e.g. /load  /files  /pages  etc
   /// The action takes a listener context and should make all appropriate adjustments to the
   /// response. The response does not need to be closed.
   public void AddHttpHandler(string path, Action<HttpListenerContext> handler) {
+    Debug.Log($"HttpServer: Handler added: {path}");
     m_HttpRequestHandlers.Add(path, handler);
   }
 
@@ -111,11 +119,13 @@ public class HttpServer : MonoBehaviour {
         context.Response.OutputStream.Write(buffer, 0, buffer.Length);
       }
     });
+    Debug.Log($"HttpServer: Handler added: {path}");
     m_HttpRequestHandlers.Add(path, wrapper);
   }
 
   // Removes a path from the Http server.
   public void RemoveHttpHandler(string path) {
+    Debug.Log($"HttpServer: Handler removed: {path}");
     m_HttpRequestHandlers.Remove(path);
   }
 }
