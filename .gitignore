@@ -28,6 +28,7 @@
 *.suo
 /*.sln
 /*.userprefs
+.vsconfig
 .vs
 .vscode/
 
